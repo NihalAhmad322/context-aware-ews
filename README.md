@@ -1,0 +1,166 @@
+# Context-Aware Early Warning System
+
+This repository contains the research code for a **context-aware early warning system (EWS)** that combines probabilistic forecasting, Ensemble Kalman Filtering (EnKF), and Model Predictive Control (MPC) to investigate the trade-off between forecast information and sensing/communication resources.
+
+The main implementation is contained in [`RMPC.ipynb`](RMPC.ipynb).
+
+## Overview
+
+The notebook implements an assimilate–optimize feedback framework in which environmental observations are assimilated using an Ensemble Kalman Filter and the resulting forecasts are evaluated and used by an MPC controller.
+
+The overall workflow is:
+
+```text
+Environmental Data
+       │
+       ▼
+Observation Processing
+       │
+       ▼
+Probabilistic Forecast Generation
+       │
+       ▼
+Ensemble Kalman Filter
+       │
+       ├── Prior State
+       │
+       └── Posterior / Assimilated State
+                    │
+                    ▼
+            Forecast Evaluation
+                    │
+                    ▼
+             MPC Controller
+                    │
+                    ▼
+        Adaptive Sensing Decisions
+                    │
+                    └───────────────┐
+                                    │
+                                    ▼
+                         New Observations
+```
+
+## Main Components
+
+### 1. Probabilistic Forecasting
+
+The notebook uses a **Radial Basis Function (RBF) kernel** to model correlations within the forecasting framework.
+
+It also implements the **Martingale Model of Forecast Evolution (MMFE)** to represent the growth of forecast uncertainty with lead time.
+
+### 2. Ensemble Kalman Filter
+
+The notebook contains helper functions for implementing the Ensemble Kalman Filter, including:
+
+* Preparation and resampling of observational data
+* Generation of ensemble forecast trajectories
+* Forecast evolution from analyzed states
+* Fixed-horizon EnKF assimilation
+* Segmented EnKF execution
+* Resuming EnKF processing across segments
+
+The EnKF is used to assimilate observations into the forecast state and produce an updated ensemble representation of the environmental state.
+
+### 3. Forecast Evaluation
+
+The assimilated forecasts are evaluated for forecasting skill using data generated and stored during the EnKF workflow.
+
+The notebook also includes supplementary analysis for fitting relationships between:
+
+* Measurement/sampling frequency and hit rate
+* Measurement/sampling frequency and false alarm rate
+
+### 4. Visualization
+
+Several visualization sections are included for examining the behavior of the Kalman filter and its forecasts.
+
+The notebook provides visualizations of the assimilation process using prior and posterior states and also contains functionality for generating an animation of the Kalman filter assimilating observations over time.
+
+### 5. MPC-Based Optimization
+
+The later sections implement an MPC controller that optimizes the **value of forecasts** while accounting for sensing-system constraints.
+
+The notebook includes:
+
+* Forecast-value optimization
+* MPC constraints
+* Optimization of sensing decisions
+* Integration of the EnKF and MPC
+* A refactored assimilate–optimize feedback loop
+
+The final refactored section brings the forecasting, assimilation, evaluation, and optimization components together into a single feedback workflow.
+
+> **Note:** The notebook also contains sections explicitly marked as work-in-progress. These sections may change as the research implementation develops.
+
+## Input Data
+
+The notebook currently expects environmental datasets in a local `data/` directory.
+
+The following files are referenced directly by the notebook:
+
+```text
+data/
+├── GHI Data USGS Site.csv
+└── processed_mississippi_data_interpolated_2021_2022.csv
+```
+
+### Solar / GHI Data
+
+`GHI Data USGS Site.csv` contains Global Horizontal Irradiance (GHI) data derived from NASA POWER/ACCESS data.
+
+The notebook processes the data to construct historical averages based on:
+
+* Month
+* Day
+* Hour
+
+### Stream-Level Data
+
+`processed_mississippi_data_interpolated_2021_2022.csv` contains stream-level observations derived from USGS data for a particular site.
+
+The notebook converts the observation timestamps to datetime format and performs polynomial interpolation before using the data in the forecasting and assimilation workflow.
+
+## Installation
+
+Clone the repository:
+
+```bash
+git clone https://github.com/NihalAhmad322/context-aware-ews.git
+cd context-aware-ews
+```
+
+Create a Python virtual environment:
+
+```bash
+python -m venv venv
+```
+
+Activate it on Windows:
+
+```bash
+venv\Scripts\activate
+```
+
+Install the required Python packages:
+
+```bash
+pip install -r requirements.txt
+```
+
+## Running the Notebook
+
+Run the notebook sequentially from the beginning, since later sections depend on variables, functions, and results generated by earlier sections.
+
+## Current Status
+
+This repository contains an active research implementation. The notebook includes both developed components and sections explicitly identified as **work-in-progress**.
+
+The implementation is intended to support ongoing investigation of context-aware sensing and forecasting for early warning systems, particularly the interaction between:
+
+* Environmental uncertainty
+* Forecast quality
+* Data assimilation
+* Sensing frequency
+* Resource constraints
+* Forecast economic/value objectives
